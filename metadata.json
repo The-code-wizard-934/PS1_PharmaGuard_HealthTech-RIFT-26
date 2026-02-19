@@ -1,0 +1,5 @@
+{
+  "name": "PharmaGuard: Pharmacogenomic Risk Prediction",
+  "description": "An AI-powered web application to analyze patient genetic data (VCF files) and drug inputs to predict pharmacogenomic risks. It generates clinically actionable recommendations and provides explainable AI-based medical insights to help reduce adverse drug reactions.",
+  "requestFramePermissions": []
+}
