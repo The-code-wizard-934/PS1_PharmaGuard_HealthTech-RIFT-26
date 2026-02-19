@@ -4,6 +4,7 @@ import type { ReportData, RiskCategory } from '../types';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Button } from './ui/Button';
 import { Download, Copy, AlertCircle, CheckCircle, BarChart2, FlaskConical, Stethoscope, BookOpen } from 'lucide-react';
+import { formatReportForExport } from '../utils/exportUtils';
 
 interface ResultsDashboardProps {
   data: ReportData;
@@ -29,59 +30,8 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data }) => {
   const [viewMode, setViewMode] = React.useState<'patient' | 'doctor'>('patient');
 
   const downloadJson = () => {
-    // Transform data to requested schema
-    const timestamp = new Date().toISOString();
-
-    const formattedData = {
-      patient_id: data.patientId,
-      timestamp: timestamp,
-      summary_report: {
-        overall_risk: data.overallRisk,
-        risk_summary: data.summaryText,
-        interaction_alerts: data.interactionAlerts?.map(alert => ({
-          type: alert.type,
-          severity: alert.severity.toLowerCase(),
-          description: alert.description,
-          mechanism: alert.mechanism
-        })) || []
-      },
-      drug_reports: data.results.map(result => ({
-        drug: result.drugName,
-        timestamp: timestamp,
-        risk_assessment: {
-          risk_label: result.riskAssessment.category,
-          confidence_score: result.riskAssessment.confidenceScore,
-          severity: result.riskAssessment.severity.toLowerCase()
-        },
-        pharmacogenomic_profile: {
-          primary_gene: result.pharmacogenomicProfile.gene,
-          diplotype: result.pharmacogenomicProfile.diplotype,
-          phenotype: result.pharmacogenomicProfile.phenotype,
-          detected_variants: result.pharmacogenomicProfile.variants
-        },
-        clinical_recommendation: {
-          summary: result.clinicalRecommendation.summary,
-          dosage_adjustment: result.clinicalRecommendation.dosageAdjustment,
-          alternative_therapy: result.clinicalRecommendation.alternativeTherapy,
-          cpic_guideline: result.clinicalRecommendation.cpicGuideline
-        },
-        llm_generated_explanation: {
-          summary: result.llmExplanation.summary,
-          biological_mechanism: result.llmExplanation.biologicalMechanism,
-          variant_interpretation: result.llmExplanation.variantInterpretation,
-          risk_interpretation: result.llmExplanation.riskInterpretation
-        },
-        quality_metrics: {
-          vcf_parsing_success: data.qualityMetrics.vcfParsingSuccess,
-          prediction_accuracy: data.qualityMetrics.predictionAccuracy,
-          evidence_level: result.evidenceLevel,
-          suggested_monitoring: result.suggestedMonitoring,
-          references: result.references
-        }
-      }))
-    };
-
-    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(formattedData, null, 2))}`;
+    const finalOutput = formatReportForExport(data);
+    const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(finalOutput, null, 2))}`;
     const link = document.createElement('a');
     link.href = jsonString;
     link.download = `PharmaGuard_Report_${data.patientId}_${new Date().getTime()}.json`;
@@ -89,7 +39,8 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ data }) => {
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    const finalOutput = formatReportForExport(data);
+    navigator.clipboard.writeText(JSON.stringify(finalOutput, null, 2));
     alert('Report copied to clipboard!');
   };
 
