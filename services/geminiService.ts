@@ -2,11 +2,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { MetabolizerStatus, RiskCategory, ClinicalRecommendation, LLMExplanation } from '../types';
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable is not set.");
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+
+if (!API_KEY) {
+  throw new Error("VITE_GEMINI_API_KEY environment variable is not set.");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const responseSchema = {
   type: Type.OBJECT,
@@ -93,9 +95,9 @@ export async function generateMedicalExplanation(
     });
 
     if (!response.text) {
-        throw new Error("API returned an empty response.");
+      throw new Error("API returned an empty response.");
     }
-    
+
     const parsedJson = JSON.parse(response.text);
 
     return {
